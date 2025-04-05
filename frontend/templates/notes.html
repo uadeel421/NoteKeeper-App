@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Notes</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .welcome {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+        .note-form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 1rem;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .notes-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        .note {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note:last-child {
+            border-bottom: none;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Notes App</h1>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+    
+    <div class="container">
+        <div class="welcome">
+            <h2>Welcome to Notes App</h2>
+            <p>Enter your notes below</p>
+        </div>
+        
+        <div class="note-form">
+            <form id="noteForm">
+                <textarea id="noteContent" placeholder="Write your note here..." required></textarea>
+                <button type="submit">Save Note</button>
+            </form>
+        </div>
+        
+        <div class="notes-list">
+            <h3>Your Notes</h3>
+            <div id="notesContainer">
+                <!-- Notes will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        });
+
+        // Form submission for new notes
+        document.getElementById('noteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const content = document.getElementById('noteContent').value;
+            
+            try {
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ note: content })
+                });
+
+                if (response.ok) {
+                    document.getElementById('noteContent').value = '';
+                    fetchNotes();
+                } else {
+                    alert('Failed to save note');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while saving the note');
+            }
+        });
+
+        // Function to fetch and display notes
+        async function fetchNotes() {
+            try {
+                const response = await fetch('/api/notes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const notesContainer = document.getElementById('notesContainer');
+                    notesContainer.innerHTML = '';
+                    
+                    if (data.notes && data.notes.length > 0) {
+                        data.notes.forEach(note => {
+                            const noteElement = document.createElement('div');
+                            noteElement.className = 'note';
+                            noteElement.textContent = note;
+                            notesContainer.appendChild(noteElement);
+                        });
+                    } else {
+                        notesContainer.innerHTML = '<p>No notes yet. Add your first note!</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching notes:', error);
+            }
+        }
+
+        // Initial fetch of notes
+        fetchNotes();
+    </script>
+</body>
+</html>

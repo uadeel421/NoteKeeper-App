@@ -1,5 +1,8 @@
 fastapi==0.95.2
 uvicorn==0.22.0
-sqlalchemy==2.0.15
+sqlalchemy==1.4.46
 mysql-connector-python==8.0.33
 python-dotenv==1.0.0
+passlib==1.7.4
+python-jose==3.3.0
+python-multipart==0.0.6
