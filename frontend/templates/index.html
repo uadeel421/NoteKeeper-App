@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notes App</title>
+</head>
+<body>
+    <h1>Notes App</h1>
+    <form method="POST">
+        <input type="text" name="note" placeholder="Add a note" required>
+        <button type="submit">Add</button>
+    </form>
+    <h2>Your Notes:</h2>
+    <ul>
+        {% for note in notes %}
+        <li>{{ note }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
