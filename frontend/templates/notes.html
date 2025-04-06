@@ -135,51 +135,22 @@
             window.location.href = '/';
         });
 
-        // Update the form submission event listener
-        document.getElementById('noteForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const content = e.target.content.value;
-            
-            try {
-                const response = await fetch('http://localhost:8000/api/notes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    credentials: 'include',  // Add this line
-                    body: JSON.stringify({ content: content })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Note created:', result);
-                    e.target.reset();
-                    await fetchNotes();
-                } else {
-                    const error = await response.json();
-                    console.error('Failed to create note:', error);
-                    alert('Failed to create note: ' + (error.detail || 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error saving note:', error);
-                alert('Error saving note. Please try again.');
-            }
-        });
-
         // Update the fetchNotes function
         async function fetchNotes() {
             try {
+                console.log('Fetching notes...');  // Debug log
                 const response = await fetch('http://localhost:8000/api/notes', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'  // Add this line
+                    }
                 });
+                
+                console.log('Response status:', response.status);  // Debug log
                 
                 if (response.ok) {
                     const notes = await response.json();
+                    console.log('Fetched notes:', notes);  // Debug log
                     const notesList = document.getElementById('notesList');
                     
                     if (Array.isArray(notes) && notes.length > 0) {
@@ -193,7 +164,8 @@
                         notesList.innerHTML = '<p>No notes found. Create one!</p>';
                     }
                 } else {
-                    throw new Error('Failed to fetch notes');
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to fetch notes');
                 }
             } catch (error) {
                 console.error('Error fetching notes:', error);
@@ -202,7 +174,43 @@
             }
         }
 
-        // Function to delete a note
+        // Update the note creation form handler
+        document.getElementById('noteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = e.target.content.value;
+            
+            try {
+                console.log('Creating note with content:', content);  // Debug log
+                console.log('Using token:', token);  // Debug log
+                
+                const response = await fetch('http://localhost:8000/api/notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                console.log('Response status:', response.status);  // Debug log
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Note created:', result);  // Debug log
+                    e.target.reset();
+                    await fetchNotes();  // Refresh notes list
+                } else {
+                    const error = await response.json();
+                    console.error('Error response:', error);  // Debug log
+                    throw new Error(error.detail || 'Failed to create note');
+                }
+            } catch (error) {
+                console.error('Error creating note:', error);
+                alert('Error saving note: ' + error.message);
+            }
+        });
+
+        // Remove credentials: 'include' from deleteNote function
         async function deleteNote(noteId) {
             try {
                 const response = await fetch(`http://localhost:8000/api/notes/${noteId}`, {
@@ -210,24 +218,22 @@
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'  // Add this line
+                    }
                 });
 
                 if (response.ok) {
                     await fetchNotes();
                 } else {
                     const error = await response.json();
-                    console.error('Failed to delete note:', error);
-                    alert('Failed to delete note: ' + (error.detail || 'Unknown error'));
+                    throw new Error(error.detail || 'Failed to delete note');
                 }
             } catch (error) {
                 console.error('Error deleting note:', error);
-                alert('Error deleting note. Please try again.');
+                alert('Error deleting note: ' + error.message);
             }
         }
 
-        // Load notes when page loads
+        // Initial load
         fetchNotes();
     </script>
 </body>
