@@ -37,7 +37,7 @@
             margin-bottom: 2rem;
         }
         textarea {
-            width: 100%;
+            width: 95%;
             padding: 1rem;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -67,14 +67,28 @@
             padding: 1.5rem;
         }
         .note {
-            padding: 1rem;
-            border-bottom: 1px solid #eee;
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .note:last-child {
             border-bottom: none;
+        }
+        .note button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .note button:hover {
+            background: #cc0000;
         }
         .logout-btn {
             background-color: #e74c3c;
@@ -98,16 +112,13 @@
         
         <div class="note-form">
             <form id="noteForm">
-                <textarea id="noteContent" placeholder="Write your note here..." required></textarea>
+                <textarea name="content" placeholder="Write your note here..." required></textarea>
                 <button type="submit">Save Note</button>
             </form>
         </div>
         
-        <div class="notes-list">
-            <h3>Your Notes</h3>
-            <div id="notesContainer">
-                <!-- Notes will be dynamically inserted here -->
-            </div>
+        <div class="notes-list" id="notesList">
+            <!-- Notes will be displayed here -->
         </div>
     </div>
 
@@ -124,65 +135,99 @@
             window.location.href = '/';
         });
 
-        // Form submission for new notes
+        // Update the form submission event listener
         document.getElementById('noteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const content = document.getElementById('noteContent').value;
+            const content = e.target.content.value;
             
             try {
-                const response = await fetch('/api/notes', {
+                const response = await fetch('http://localhost:8000/api/notes', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ note: content })
+                    credentials: 'include',  // Add this line
+                    body: JSON.stringify({ content: content })
                 });
 
                 if (response.ok) {
-                    document.getElementById('noteContent').value = '';
-                    fetchNotes();
+                    const result = await response.json();
+                    console.log('Note created:', result);
+                    e.target.reset();
+                    await fetchNotes();
                 } else {
-                    alert('Failed to save note');
+                    const error = await response.json();
+                    console.error('Failed to create note:', error);
+                    alert('Failed to create note: ' + (error.detail || 'Unknown error'));
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while saving the note');
+                console.error('Error saving note:', error);
+                alert('Error saving note. Please try again.');
             }
         });
 
-        // Function to fetch and display notes
+        // Update the fetchNotes function
         async function fetchNotes() {
             try {
-                const response = await fetch('/api/notes', {
+                const response = await fetch('http://localhost:8000/api/notes', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'  // Add this line
                 });
                 
                 if (response.ok) {
-                    const data = await response.json();
-                    const notesContainer = document.getElementById('notesContainer');
-                    notesContainer.innerHTML = '';
+                    const notes = await response.json();
+                    const notesList = document.getElementById('notesList');
                     
-                    if (data.notes && data.notes.length > 0) {
-                        data.notes.forEach(note => {
-                            const noteElement = document.createElement('div');
-                            noteElement.className = 'note';
-                            noteElement.textContent = note;
-                            notesContainer.appendChild(noteElement);
-                        });
+                    if (Array.isArray(notes) && notes.length > 0) {
+                        notesList.innerHTML = notes.map(note => `
+                            <div class="note">
+                                <p>${note.content}</p>
+                                <button onclick="deleteNote(${note.id})">Delete</button>
+                            </div>
+                        `).join('');
                     } else {
-                        notesContainer.innerHTML = '<p>No notes yet. Add your first note!</p>';
+                        notesList.innerHTML = '<p>No notes found. Create one!</p>';
                     }
+                } else {
+                    throw new Error('Failed to fetch notes');
                 }
             } catch (error) {
                 console.error('Error fetching notes:', error);
+                document.getElementById('notesList').innerHTML = 
+                    '<p>Error loading notes. Please refresh the page.</p>';
             }
         }
 
-        // Initial fetch of notes
+        // Function to delete a note
+        async function deleteNote(noteId) {
+            try {
+                const response = await fetch(`http://localhost:8000/api/notes/${noteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'  // Add this line
+                });
+
+                if (response.ok) {
+                    await fetchNotes();
+                } else {
+                    const error = await response.json();
+                    console.error('Failed to delete note:', error);
+                    alert('Failed to delete note: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                alert('Error deleting note. Please try again.');
+            }
+        }
+
+        // Load notes when page loads
         fetchNotes();
     </script>
 </body>
