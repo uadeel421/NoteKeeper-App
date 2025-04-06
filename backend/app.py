@@ -44,15 +44,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 Base.metadata.create_all(bind=engine)
 
-# Add this after your database configuration
-def init_db():
-    try:
-        Base.metadata.drop_all(bind=engine)  # Drop existing tables
-        Base.metadata.create_all(bind=engine)  # Create new tables
-        print("Database tables created successfully")
-    except Exception as e:
-        print(f"Error creating database tables: {e}")
-
 app = FastAPI()
 
 app.add_middleware(
@@ -62,9 +53,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Call init_db after creating the FastAPI app
-init_db()
 
 # Dependency to get the DB session
 def get_db():
