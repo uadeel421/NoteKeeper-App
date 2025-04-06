@@ -6,15 +6,45 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - BACKEND_URL=http://backend:8000
+      - BACKEND_URL=http://api-gateway:8000
     depends_on:
-      - backend
+      - api-gateway
+    networks:
+      - app-network
 
-  backend:
-    build: ./backend
+  api-gateway:
+    build: ./api-gateway
     ports:
       - "8000:8000"
     environment:
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - NOTES_SERVICE_URL=http://notes-service:8002
+    depends_on:
+      - auth-service
+      - notes-service
+    networks:
+      - app-network
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8001:8001"
+    environment:
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
-    restart: unless-stopped
+    networks:
+      - app-network
+
+  notes-service:
+    build: ./notes-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

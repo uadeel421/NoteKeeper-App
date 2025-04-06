@@ -1,118 +1,190 @@
-# Python Microservices Notes Application
+# Python Microservices Application
 
-A full-stack notes application built with Python microservices architecture, using FastAPI for the backend, Flask for the frontend, and Azure MySQL for the database.
+A full-stack notes application built with Python microservices architecture, using FastAPI, Docker, and Azure MySQL.
 
-## Tech Stack
-- **Frontend**: Flask (Python web framework)
-- **Backend**: FastAPI (Modern, fast API framework)
-- **Database**: Azure MySQL Database
-- **Authentication**: JWT (JSON Web Tokens)
-- **Container**: Docker & Docker Compose
+## Architecture
+
+```
+┌─────────────┐     ┌──────────────┐
+│   Frontend  │────▶│  API Gateway │
+│  (Port 5000)│     │  (Port 8000) │
+└─────────────┘     └──────┬───────┘
+                           │
+                    ┌──────┴───────┐
+                    │              │
+              ┌─────▼────┐   ┌────▼─────┐
+              │   Auth   │   │  Notes   │
+              │Service   │   │ Service  │
+              │Port 8001 │   │Port 8002 │
+              └─────┬────┘   └────┬─────┘
+                    │             │
+                    └─────┐ ┌─────┘
+                          │ │
+                     ┌────▼─▼────┐
+                     │   Azure   │
+                     │   MySQL   │
+                     └───────────┘
+```
 
 ## Features
+
 - User authentication (signup/login)
+- JWT token-based authorization
 - Create, read, and delete notes
-- Secure API with JWT tokens
-- Responsive web interface
-- Containerized deployment
+- Microservices architecture
+- Docker containerization
+- Azure MySQL database integration
 
 ## Prerequisites
+
 - Docker and Docker Compose
-- Python 3.9 or higher
-- Azure MySQL Database instance
-- SSL certificate for database connection
+- Python 3.9+
+- Azure MySQL Database
+- Node.js and npm (for frontend)
 
 ## Project Structure
+
 ```
 microservices-python/
-├── backend/
-│   ├── app.py              # FastAPI application
-│   ├── requirements.txt    # Backend dependencies
-│   ├── Dockerfile         # Backend container configuration
-│   └── ssl/               # SSL certificates for Azure MySQL
+├── api-gateway/
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── auth-service/
+│   ├── app.py
+│   ├── database.py
+│   ├── models.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── notes-service/
+│   ├── app.py
+│   ├── database.py
+│   ├── models.py
+│   ├── Dockerfile
+│   └── requirements.txt
 ├── frontend/
-│   ├── app.py             # Flask application
-│   ├── requirements.txt   # Frontend dependencies
-│   ├── Dockerfile        # Frontend container configuration
-│   └── templates/        # HTML templates
-└── docker-compose.yml    # Container orchestration
+│   ├── templates/
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── signup.html
+│   │   └── notes.html
+│   ├── app.py
+│   └── Dockerfile
+├── docker-compose.yml
+└── .env
 ```
 
 ## Environment Variables
+
 Create a `.env` file in the root directory:
-```
-# Azure MySQL Configuration
-DATABASE_URL=mysql+mysqlconnector://username:password@server.mysql.database.azure.com:3306/dbname?ssl_ca=backend/ssl/DigiCertGlobalRootCA.crt.pem
 
-# Application Security
-SECRET_KEY=your_secret_key_here
-
-# Frontend Configuration
-FRONTEND_URL=http://localhost:5000
+```env
+DATABASE_URL=mysql+mysqlconnector://username:password@host:3306/database
+SECRET_KEY=your-secret-key
 ```
 
-## Getting Started
+## Installation & Setup
+
 1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd microservices-python
-   ```
+```bash
+git clone https://github.com/yourusername/microservices-python.git
+cd microservices-python
+```
 
-2. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Update with your Azure MySQL credentials
+2. Build and start the services:
+```bash
+docker-compose up --build
+```
 
-3. Start the application:
-   ```bash
-   docker-compose up --build
-   ```
-
-4. Access the application:
-   - Frontend: http://localhost:5000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
+3. Access the application:
+- Frontend: http://localhost:5000
+- API Gateway: http://localhost:8000
+- Auth Service: http://localhost:8001
+- Notes Service: http://localhost:8002
 
 ## API Endpoints
-- `POST /api/signup`: Create new user account
-- `POST /api/login`: Authenticate user and get JWT token
-- `GET /api/notes`: Get all notes for current user
-- `POST /api/notes`: Create a new note
-- `DELETE /api/notes/{note_id}`: Delete a specific note
 
-## Development
-### Backend (FastAPI)
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+### Auth Service (Port 8001)
+- `POST /api/signup` - Register new user
+- `POST /api/login` - User login
+
+### Notes Service (Port 8002)
+- `GET /api/notes` - Get user's notes
+- `POST /api/notes` - Create new note
+- `DELETE /api/notes/{note_id}` - Delete note
+
+## Database Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) UNIQUE,
+    name VARCHAR(255),
+    hashed_password VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE
+);
 ```
 
-### Frontend (Flask)
+### Notes Table
+```sql
+CREATE TABLE notes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    content VARCHAR(255) NOT NULL,
+    owner_id INT NOT NULL,
+    INDEX owner_id_idx (owner_id)
+);
+```
+
+## Development
+
+To run services individually:
+
 ```bash
+# API Gateway
+cd api-gateway
+uvicorn app:app --reload --port 8000
+
+# Auth Service
+cd auth-service
+uvicorn app:app --reload --port 8001
+
+# Notes Service
+cd notes-service
+uvicorn app:app --reload --port 8002
+
+# Frontend
 cd frontend
-pip install -r requirements.txt
-flask run --host=0.0.0.0
+python app.py
 ```
 
 ## Docker Commands
-- Build and start containers: `docker-compose up --build`
-- Stop containers: `docker-compose down`
-- View logs: `docker-compose logs`
-- Restart services: `docker-compose restart`
 
-## Security Features
-- Password hashing with bcrypt
-- JWT token authentication
-- SSL/TLS database connection
-- CORS protection
-- Environment variable configuration
+```bash
+# Build all services
+docker-compose build
+
+# Start all services
+docker-compose up
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Clean up
+docker system prune -f
+```
 
 ## Contributing
+
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details
+
+This project is licensed under the MIT License - see the LICENSE file for details.

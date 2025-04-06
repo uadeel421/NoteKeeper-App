@@ -1,0 +1,8 @@
+fastapi==0.68.0
+uvicorn==0.15.0
+sqlalchemy==1.4.23
+python-dotenv==0.20.0
+mysql-connector-python==8.0.26
+pydantic==1.8.2
+python-multipart==0.0.5
+python-jose==3.3.0
