@@ -42,13 +42,13 @@ def logout():
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
     data = request.get_json()
-    response = requests.post(f"{BACKEND_URL}/signup", json=data)
+    response = requests.post(f"{BACKEND_URL}/api/signup", json=data)
     return jsonify(response.json()), response.status_code
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json()
-    response = requests.post(f"{BACKEND_URL}/login", json=data)
+    response = requests.post(f"{BACKEND_URL}/api/login", json=data)
     return jsonify(response.json()), response.status_code
 
 @app.route('/api/notes', methods=['GET', 'POST'])
@@ -61,13 +61,13 @@ def api_notes():
         if request.method == 'POST':
             data = request.get_json()
             response = requests.post(
-                f"{BACKEND_URL}/notes", 
+                f"{BACKEND_URL}/api/notes", 
                 json=data,
                 headers=headers
             )
         else:
             response = requests.get(
-                f"{BACKEND_URL}/notes",
+                f"{BACKEND_URL}/api/notes",
                 headers=headers
             )
         
