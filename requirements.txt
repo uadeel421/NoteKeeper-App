@@ -1,0 +1,5 @@
+pytest==7.3.1
+flake8==6.1.0
+requests==2.31.0
+fastapi==0.104.1
+pytest-cov==4.1.0
