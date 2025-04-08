@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from auth_service.app import app  # Change the import path
+from auth-service.app import app  # Change the import path
 
 client = TestClient(app)
 
