@@ -41,5 +41,6 @@ jobs:
     - name: Run tests (if any)
       working-directory: ${{ matrix.service }}
       run: |
-        pytest || echo "No tests found in ${{ matrix.service }}"
+        export PYTHONPATH=.
+        pytest ||
 
