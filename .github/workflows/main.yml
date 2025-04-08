@@ -1,4 +1,4 @@
-name: Python CI
+name: Basic Code Checks in CI (linting, syntax)
 
 on:
   push:
