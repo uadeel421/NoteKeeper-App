@@ -3,8 +3,7 @@ name: Python CI
 on:
   push:
   
-    branches:
-      - features-changes-1 
+    branches: [feature-changes-1]
       
   pull_request:
     branches: [ main ]
