@@ -4,11 +4,10 @@ on:
   push:
     branches:
       - main
-      
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:  
-  
+
 jobs:
   ci:
     name: Linting and Testing
@@ -36,7 +35,7 @@ jobs:
     - name: Auto format with autopep8
       working-directory: ${{ matrix.service }}
       run: |
-        autopep8 --in-place --aggressive --aggressive .  # Auto format your code
+        autopep8 --in-place --aggressive .  # Auto format your code (one --aggressive flag is enough)
 
     - name: Run flake8 (basic lint)
       working-directory: ${{ matrix.service }}
@@ -74,20 +73,3 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Get version info
-        id: version
-        run: |
-          echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
-          echo "SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Build and Push
-        working-directory: ${{ matrix.service }}
-        run: |
-          docker buildx create --use
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            --tag uadeel421/pythonapplication${{ matrix.service }}:latest \
-            --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.SHA }} \
-            --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.DATE }} \
-            --push .
-    
