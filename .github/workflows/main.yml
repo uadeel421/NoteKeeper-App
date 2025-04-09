@@ -1,5 +1,3 @@
-name: Basic Code Checks in CI (linting, syntax)
-
 on:
   push:
     branches:
@@ -31,7 +29,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest flake8 pytest-cov
+        pip install pytest flake8 pytest-cov autopep8  # Install autopep8
+
+    - name: Auto format with autopep8
+      working-directory: ${{ matrix.service }}
+      run: |
+        find . -name "*.py" -exec autopep8 --in-place --aggressive {} \;  # Format all Python files
 
     - name: Run flake8 (basic lint)
       working-directory: ${{ matrix.service }}
@@ -43,7 +46,7 @@ jobs:
       run: |
         export PYTHONPATH=.
         pytest --cov=. --cov-report=xml || exit 1
-        
+
     - name: Upload coverage
       uses: codecov/codecov-action@v3
 
@@ -85,4 +88,3 @@ jobs:
             --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.SHA }} \
             --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.DATE }} \
             --push .
-    
