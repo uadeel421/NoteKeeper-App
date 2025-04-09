@@ -2,20 +2,21 @@ name: Basic Code Checks in CI (linting, syntax)
 
 on:
   push:
-  
-    branches: [feature-changes-1]
+    branches:
+      - main
       
   pull_request:
     branches: [ main ]
-
+  workflow_dispatch:  
+  
 jobs:
-  lint-and-test:
+  ci:
+    name: Linting and Testing
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        service: [api-gateway, auth-service, notes-service, frontend]
-
+        service: [api-gateway, notes-service, frontend, user-service]
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -30,14 +31,58 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest
-        pip install flake8 pytest
+        pip install pytest flake8 pytest-cov
 
-    - name: Run flake8 (lint check)
+    - name: Run flake8 (basic lint)
       working-directory: ${{ matrix.service }}
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 .
 
-    - name: Run tests (if any)
+    - name: Run tests with coverage
+      working-directory: ${{ matrix.service }}
       run: |
-        pytest
+        export PYTHONPATH=.
+        pytest --cov=. --cov-report=xml || exit 1
+        
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+
+  cd:
+    name: Continuous Deployment
+    needs: ci
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, notes-service, frontend, user-service]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Get version info
+        id: version
+        run: |
+          echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+          echo "SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Build and Push
+        working-directory: ${{ matrix.service }}
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag uadeel421/pythonapplication${{ matrix.service }}:latest \
+            --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.SHA }} \
+            --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.DATE }} \
+            --push .
+    
