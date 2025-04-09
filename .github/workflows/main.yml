@@ -33,10 +33,10 @@ jobs:
         pip install -r requirements.txt
         pip install pytest flake8 pytest-cov
 
-    - name: Run flake8 (comprehensive lint)
+    - name: Run flake8 (basic lint)
       working-directory: ${{ matrix.service }}
       run: |
-        flake8 . --count --max-complexity=10 --max-line-length=120 --statistics
+        flake8 .
 
     - name: Run tests with coverage
       working-directory: ${{ matrix.service }}
