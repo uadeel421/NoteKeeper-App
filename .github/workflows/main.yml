@@ -34,8 +34,7 @@ jobs:
     - name: Auto format with autopep8
       working-directory: ${{ matrix.service }}
       run: |
-        autopep8 --in-place --aggressive ./**/*.py  # Format all Python files in the service directory
-
+        find . -name "*.py" -exec autopep8 --in-place --aggressive {} \;  # Format all Python files
 
     - name: Run flake8 (basic lint)
       working-directory: ${{ matrix.service }}
