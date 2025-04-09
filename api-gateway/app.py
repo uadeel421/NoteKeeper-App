@@ -19,6 +19,7 @@ AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
 NOTES_SERVICE_URL = os.getenv("NOTES_SERVICE_URL", "http://notes-service:8002")
 USER_SERVICE_URL = "http://user-service:8003"
 
+
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def gateway(path: str, request: Request):
     try:
@@ -31,11 +32,11 @@ async def gateway(path: str, request: Request):
             raise HTTPException(status_code=404, detail="Path not found")
 
         print(f"Forwarding {request.method} request to: {service_url}")
-        
+
         # Forward the request
         body = await request.body()
         headers = {key: value for key, value in request.headers.items()
-                  if key.lower() not in ["host", "content-length"]}
+                   if key.lower() not in ["host", "content-length"]}
 
         async with httpx.AsyncClient() as client:
             response = await client.request(
@@ -44,7 +45,7 @@ async def gateway(path: str, request: Request):
                 headers=headers,
                 content=body
             )
-            
+
             # Important: Forward the status code from the service
             if response.status_code >= 400:
                 error_detail = response.json()
@@ -52,7 +53,7 @@ async def gateway(path: str, request: Request):
                     status_code=response.status_code,
                     detail=error_detail.get("detail", "Service error")
                 )
-                
+
             return response.json()
 
     except HTTPException:

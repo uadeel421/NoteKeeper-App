@@ -26,9 +26,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 async def startup():
     init_db()
+
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
@@ -41,23 +43,29 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 # Add root endpoint for health check
+
+
 @app.get("/")
 def read_root():
     return {"status": "healthy", "service": "auth"}
 
 # Password utility functions
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 @app.post("/api/signup")
 def signup(user: dict, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user['email']).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     hashed_password = pwd_context.hash(user['password'])
     db_user = User(
         email=user['email'],
@@ -69,6 +77,7 @@ def signup(user: dict, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return {"message": "User created successfully"}
 
+
 @app.post("/api/login")
 def login(form_data: dict, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == form_data['email']).first()
@@ -77,13 +86,14 @@ def login(form_data: dict, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-    
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": db_user.email, "id": db_user.id},
         expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/api/auth/verify")
 async def verify_token(token: str):

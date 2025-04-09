@@ -47,6 +47,8 @@ def logout():
 
 
 # API proxy endpoints
+
+
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
     data = request.get_json()
@@ -64,7 +66,8 @@ def api_login():
 @app.route('/api/notes', methods=['GET', 'POST'])
 def api_notes():
     # Get token from Authorization header or cookies
-    token = request.headers.get('Authorization') or request.cookies.get('token')
+    token = request.headers.get(
+        'Authorization') or request.cookies.get('token')
     headers = {'Authorization': f'Bearer {token}'} if token else {}
 
     try:

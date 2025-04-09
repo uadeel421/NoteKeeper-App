@@ -18,12 +18,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/api/users/profile/{user_id}")
 async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
-    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    profile = db.query(UserProfile).filter(
+        UserProfile.user_id == user_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     return profile
+
 
 @app.post("/api/users/profile")
 async def create_user_profile(profile: dict, db: Session = Depends(get_db)):
@@ -43,16 +46,18 @@ async def create_user_profile(profile: dict, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.put("/api/users/profile/{user_id}")
 async def update_user_profile(user_id: int, profile: dict, db: Session = Depends(get_db)):
-    db_profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    db_profile = db.query(UserProfile).filter(
+        UserProfile.user_id == user_id).first()
     if not db_profile:
         raise HTTPException(status_code=404, detail="Profile not found")
-    
+
     for key, value in profile.items():
         if hasattr(db_profile, key):
             setattr(db_profile, key, value)
-    
+
     try:
         db.commit()
         db.refresh(db_profile)

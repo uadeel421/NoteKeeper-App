@@ -13,12 +13,14 @@ from jose import JWTError, jwt
 load_dotenv()
 
 # MySQL configuration
-DATABASE_URL = os.getenv('DATABASE_URL', 'mysql+mysqlconnector://kpadmin:sdfdsf8^@python-dbserver.mysql.database.azure.com:3306/pyth-micros-db?ssl_ca=backend/ssl/DigiCertGlobalRootCA.crt.pem')
+DATABASE_URL = os.getenv(
+    'DATABASE_URL', 'mysql+mysqlconnector://kpadmin:sdfdsf8^@python-dbserver.mysql.database.azure.com:3306/pyth-micros-db?ssl_ca=backend/ssl/DigiCertGlobalRootCA.crt.pem')
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = "users"
@@ -28,11 +30,14 @@ class User(Base):
     hashed_password = Column(String(255))
     is_active = Column(Boolean, default=True)
 
+
 class Note(Base):
     __tablename__ = "notes"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String(255), nullable=False)  # Make content required
-    owner_id = Column(Integer, nullable=False, index=True)  # Make owner_id required
+    # Make owner_id required
+    owner_id = Column(Integer, nullable=False, index=True)
+
 
 # Security setup
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -48,13 +53,16 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000"],  # Specifically allow your frontend origin
+    # Specifically allow your frontend origin
+    allow_origins=["http://localhost:5000"],
     allow_credentials=True,  # Important for cookies/authentication
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Dependency to get the DB session
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -63,11 +71,15 @@ def get_db():
         db.close()
 
 # Utility functions
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
@@ -80,6 +92,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 # Dependency to get current user
+
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -93,19 +107,21 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    
+
     user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
     return {"email": email, "id": user.id}
 
 # Authentication endpoints
+
+
 @app.post("/api/signup")
 def signup(user: dict, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user['email']).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     hashed_password = get_password_hash(user['password'])
     db_user = User(
         email=user['email'],
@@ -117,17 +133,20 @@ def signup(user: dict, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return {"message": "User created successfully"}
 
+
 @app.post("/api/login")
 def login(form_data: dict, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == form_data['email']).first()
     if not db_user or not verify_password(form_data['password'], db_user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
-    
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": db_user.email, "id": db_user.id}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/api/notes")
 def read_notes(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
@@ -135,12 +154,14 @@ def read_notes(db: Session = Depends(get_db), current_user: dict = Depends(get_c
     # Return notes array directly instead of wrapping in "notes" object
     return [{"id": note.id, "content": note.content} for note in notes]
 
+
 @app.post("/api/notes")
 def create_note(note: dict, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         if not note.get('content'):
-            raise HTTPException(status_code=400, detail="Note content is required")
-            
+            raise HTTPException(
+                status_code=400, detail="Note content is required")
+
         db_note = Note(
             content=note['content'],
             owner_id=current_user['id']
@@ -148,7 +169,7 @@ def create_note(note: dict, db: Session = Depends(get_db), current_user: dict = 
         db.add(db_note)
         db.commit()
         db.refresh(db_note)
-        
+
         return {
             "message": "Note created successfully",
             "note": {
@@ -162,12 +183,14 @@ def create_note(note: dict, db: Session = Depends(get_db), current_user: dict = 
         print(f"Error creating note: {e}")  # Add logging
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.delete("/api/notes/{note_id}")
 def delete_note(note_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_note = db.query(Note).filter(Note.id == note_id, Note.owner_id == current_user['id']).first()
+    db_note = db.query(Note).filter(Note.id == note_id,
+                                    Note.owner_id == current_user['id']).first()
     if not db_note:
         raise HTTPException(status_code=404, detail="Note not found")
-    
+
     db.delete(db_note)
     db.commit()
     return {"message": "Note deleted successfully"}
