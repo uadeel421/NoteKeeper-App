@@ -111,7 +111,6 @@ async def delete_note(note_id: int, db: Session = Depends(get_db), current_user:
                                     Note.owner_id == current_user["id"]).first()
     if not db_note:
         raise HTTPException(status_code=404, detail="Note not found")
-
     try:
         db.delete(db_note)
         db.commit()
