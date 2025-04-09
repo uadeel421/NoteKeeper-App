@@ -104,7 +104,6 @@ async def create_note(note: dict, db: Session = Depends(get_db), current_user: d
         print(f"Error creating note: {str(e)}")  # Debug log
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.delete("/api/notes/{note_id}")
 async def delete_note(note_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     db_note = db.query(Note).filter(Note.id == note_id,
@@ -112,7 +111,6 @@ async def delete_note(note_id: int, db: Session = Depends(get_db), current_user:
     if not db_note:
         raise HTTPException(status_code=404, 
                             detail="Note not found")
-   
     try:
         db.delete(db_note)
         db.commit()
