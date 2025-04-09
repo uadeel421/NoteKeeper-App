@@ -41,7 +41,7 @@ async def create_user_profile(profile: dict, db: Session = Depends(get_db)):
         db.add(db_profile)
         db.commit()
         db.refresh(db_profile)
-        return {"message": "Profile created successfully", "profile": db_profile}
+        return {"message":"Profile created successfully","profile": db_profile}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
