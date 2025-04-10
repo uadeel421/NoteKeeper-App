@@ -5,7 +5,7 @@ from database import get_db, init_db
 from models import User
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from jose import jwt
 import os
 
 # Initialize app
