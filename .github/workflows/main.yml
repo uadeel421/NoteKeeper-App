@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, notes-service, frontend, user-service]
+        service: [api-gateway, notes-service, frontend, auth-service]
     
     steps:
       - name: Checkout repository
