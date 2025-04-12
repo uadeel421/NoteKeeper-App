@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway-deployment
+  namespace: staging
+  labels:
+    app: apigateway
+    environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apigateway
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: apigateway
+        environment: staging
+    spec:
+      nodeSelector:
+        environment: staging
+      containers:
+        - name: apigateway
+          image: uadeel421/pythonapplication-api-gateway:latest
+          ports:
+            - containerPort: 8000
+          env:
+          - name: AUTH_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: configmap
+                key: AUTH_SERVER_URL
+          - name: NOTES_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: configmap
+                key: NOTES_SERVER_URL
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigateway-service
+  namespace: staging
+  labels:
+    app: apigateway
+    environment: staging
+spec:
+  selector:
+    app: apigateway
+    environment: staging
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer       
