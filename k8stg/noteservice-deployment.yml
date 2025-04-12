@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: noteservice-deployment
+  namespace: staging
+  labels:
+    app: noteservice
+    environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: noteservice
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: noteservice
+        environment: staging
+    spec:
+      nodeSelector:
+        environment: staging
+      containers:
+        - name: noteservice
+          image: uadeel421/pythonapplication-notes-service:latest
+          ports:
+            - containerPort: 8002
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: secret
+                key: DATABASE_URL
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: secret
+                key: SECRET_KEY
+          volumeMounts:
+              - name: mysql-ssl-cert-volume
+                mountPath: /app/ssl
+                readOnly: true            
+      volumes:
+        - name: mysql-ssl-cert-volume
+          secret:
+            secretName: mysql-ssl-cert  # Name of the secret containing the certificate
+            items:
+              - key: DigiCertGlobalRootCA.crt.pem
+                path: DigiCertGlobalRootCA.crt.pem  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: noteservice-service
+  namespace: staging
+  labels:
+    app: noteservice
+    environment: staging
+spec:
+  selector:
+    app: noteservice
+    environment: staging
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002
+  type: LoadBalancer                  

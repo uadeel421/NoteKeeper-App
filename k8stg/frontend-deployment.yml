@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: staging
+  labels:
+    app: frontend
+    environment: staging
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: frontend
+        environment: staging
+    spec:
+      nodeSelector:
+        environment: staging  # 👈 schedules this on staging node pool    
+      containers:
+        - name: frontend
+          image: uadeel421/pythonapplication-frontend:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: BACKEND_URL
+              value: http://auth-service:8001  # 👈 service name of the api-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: staging
+  
+  labels:
+    app: frontend
+    environment: staging
+spec:
+  selector:
+    app: frontend
+    environment: staging
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: LoadBalancer

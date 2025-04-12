@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:8000')
+# BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:8000')
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://auth-service:8001')
 
 
 @app.route('/health')
