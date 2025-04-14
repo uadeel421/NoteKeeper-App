@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, notes-service, frontend, user-service]
+        service: [api-gateway, notes-service, frontend, auth-service]
     
     steps:
     - name: Checkout code
@@ -29,7 +29,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest flake8 pytest-cov autopep8  # Install autopep8
+        pip install pytest flake8 pytest-cov autopep8 requests  # Add requests here
 
     - name: Auto format with autopep8
       working-directory: ${{ matrix.service }}
@@ -50,13 +50,14 @@ jobs:
     - name: Upload coverage
       uses: codecov/codecov-action@v3
 
+
   cd:
     name: Continuous Deployment
     needs: ci
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, notes-service, frontend, user-service]
+        service: [api-gateway, notes-service, frontend, auth-service]
     
     steps:
       - name: Checkout repository
@@ -74,7 +75,6 @@ jobs:
       - name: Get version info
         id: version
         run: |
-          echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
           echo "SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
@@ -84,7 +84,6 @@ jobs:
           docker buildx create --use
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            --tag uadeel421/pythonapplication${{ matrix.service }}:latest \
-            --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.SHA }} \
-            --tag uadeel421/pythonapplication${{ matrix.service }}:${{ env.DATE }} \
+            --tag uadeel421/pythonapplication-${{ matrix.service }}:latest \
+            --tag uadeel421/pythonapplication-${{ matrix.service }}:${{ env.SHA }} \
             --push .

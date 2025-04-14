@@ -3,6 +3,7 @@ import requests
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -46,6 +47,7 @@ def notes():
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
+
 
 # API proxy endpoints
 

@@ -4,4 +4,4 @@ requests==2.31.0
 fastapi==0.104.1
 pytest-cov==4.1.0
 httpx==0.25.0
-
+requests>=2.25.1

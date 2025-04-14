@@ -104,7 +104,6 @@ async def create_note(note: dict, db: Session = Depends(get_db), current_user: d
         print(f"Error creating note: {str(e)}")  # Debug log
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.delete("/api/notes/{note_id}")
 async def delete_note(
     note_id: int,
