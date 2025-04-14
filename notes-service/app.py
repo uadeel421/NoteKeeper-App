@@ -16,7 +16,7 @@ ALGORITHM = "HS256"
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000"],
+    allow_origins=["http://localhost:5000", "http://api-gateway:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -106,16 +106,39 @@ async def create_note(note: dict, db: Session = Depends(get_db), current_user: d
 
 
 @app.delete("/api/notes/{note_id}")
-async def delete_note(note_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_note = db.query(Note).filter(Note.id == note_id,
-                                    Note.owner_id == current_user["id"]).first()
+async def delete_note(
+    note_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    # Validate note exists and belongs to user
+    db_note = db.query(Note).filter(
+        Note.id == note_id,
+        Note.owner_id == current_user["id"]
+    ).first()
+    
     if not db_note:
-        raise HTTPException(status_code=404, detail="Note not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note not found or you don't have permission to delete it"
+        )
 
     try:
         db.delete(db_note)
         db.commit()
-        return {"message": "Note deleted successfully"}
+        return Response(
+            status_code=status.HTTP_204_NO_CONTENT,
+            headers={"Content-Type": "application/json"}
+        )
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error occurred while deleting note"
+        )
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
