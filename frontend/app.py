@@ -8,9 +8,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:8000')
-#BACKEND_URL = os.getenv('BACKEND_URL', 'http://auth-service:8001')
-# ✅ Correct → Routes both /api/signup, /api/login, /api/notes through gateway
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://api-gateway:8000')
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://auth-service:8001')
 
 
 @app.route('/health')
