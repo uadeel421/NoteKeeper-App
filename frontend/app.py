@@ -68,28 +68,48 @@ def api_login():
 
 @app.route('/api/notes', methods=['GET', 'POST'])
 def api_notes():
-    # Get token from Authorization header or cookies
-    token = request.headers.get(
-        'Authorization') or request.cookies.get('token')
-    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    # Get token from Authorization header (strip 'Bearer ' if present)
+    auth_header = request.headers.get('Authorization', '')
+    token = auth_header.replace('Bearer ', '') if auth_header.startswith('Bearer ') else auth_header
+    
+    if not token:
+        return jsonify({'error': 'Authorization token required'}), 401
+
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
 
     try:
         if request.method == 'POST':
             data = request.get_json()
+            if not data:
+                return jsonify({'error': 'No data provided'}), 400
+                
             response = requests.post(
                 f"{BACKEND_URL}/api/notes",
                 json=data,
-                headers=headers
+                headers=headers,
+                timeout=10  # Add timeout
             )
         else:
             response = requests.get(
                 f"{BACKEND_URL}/api/notes",
-                headers=headers
+                headers=headers,
+                timeout=10  # Add timeout
             )
 
-        # Ensure response is JSON
-        if 'application/json' not in response.headers.get('Content-Type', ''):
-            return jsonify({'error': 'Invalid response from server'}), 500
+        # Handle non-200 responses
+        if response.status_code >= 400:
+            error_msg = response.json().get('detail', response.text)
+            return jsonify({'error': error_msg}), response.status_code
+
+        return jsonify(response.json()), response.status_code
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Backend request failed: {str(e)}'}), 502
+    except ValueError as e:  # JSON decode error
+        return jsonify({'error': 'Invalid response from backend'}), 502
 
         return jsonify(response.json()), response.status_code
 
