@@ -20,7 +20,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # CORS middleware - match monolithic configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000"],
+    allow_origins=["http://localhost:5000", "http://51.8.238.99"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

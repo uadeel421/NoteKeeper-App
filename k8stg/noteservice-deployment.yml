@@ -52,7 +52,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: noteservice-service
+  name: notes-service
   namespace: staging
   labels:
     app: noteservice
@@ -65,4 +65,4 @@ spec:
     - protocol: TCP
       port: 8002
       targetPort: 8002
-  type: LoadBalancer                  
+  type: ClusterIP                  
