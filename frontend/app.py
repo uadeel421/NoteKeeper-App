@@ -66,8 +66,7 @@ def api_login():
 @app.route('/api/notes', methods=['GET', 'POST'])
 def api_notes():
     auth_header = request.headers.get('Authorization')
-    token = auth_header.split(" ", 1)[1] if auth_header 
-    and auth_header.startswith("Bearer ") else request.cookies.get('token')
+    token = auth_header.split(" ", 1)[1] if auth_header and auth_header.startswith("Bearer ") else request.cookies.get('token')
     headers = {'Authorization': f'Bearer {token}'} if token else {}
 
     try:
