@@ -99,6 +99,7 @@ def delete_note(note_id):
         if 'application/json' not in response.headers.get('Content-Type', ''):
             return jsonify({'error': 'Invalid response from server'}), 500
 
+
         return jsonify(response.json()), response.status_code
 
     except Exception as e:
