@@ -97,8 +97,7 @@ def delete_note(note_id):
                         /api/notes/{note_id}", headers=headers)
 
         if 'application/json' not in response.headers.get('Content-Type', ''):
-            some_string = "This is a long string " \
-              "that continues on the next line."
+            return jsonify({'error': 'Invalid response from server'}), 500
 
         return jsonify(response.json()), response.status_code
 
