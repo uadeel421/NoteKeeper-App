@@ -7,7 +7,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://api-gateway:8000')
+
 
 
 @app.route('/health')
