@@ -89,42 +89,49 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
+        // Function to retrieve the JWT token from localStorage
+        function getAuthToken() {
+            return localStorage.getItem('token');  // Retrieve the stored token
+    }
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
+    // Ensure the login functionality is working
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        document.getElementById('loginError').textContent = errorJson.detail || 'Login failed';
-                    } catch {
-                        document.getElementById('loginError').textContent = errorText || 'Login failed';
-                    }
-                    return;
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    document.getElementById('loginError').textContent = errorJson.detail || 'Login failed';
+                } catch {
+                    document.getElementById('loginError').textContent = errorText || 'Login failed';
                 }
-
-                const result = await response.json();
-                localStorage.setItem('token', result.access_token);
-                window.location.href = '/notes';
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('loginError').textContent = 'An error occurred during login';
+                return;
             }
-        });
+
+            const result = await response.json();
+            localStorage.setItem('token', result.access_token);  // Store the token in localStorage
+            window.location.href = '/notes';  // Redirect to the notes page
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loginError').textContent = 'An error occurred during login';
+        }
+    });
+
     </script>
 </body>
 </html>

@@ -3,7 +3,6 @@ import requests
 import os
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -46,8 +45,7 @@ def logout():
     return redirect(url_for('index'))
 
 
-# API proxy endpoints
-
+# ========== API proxy endpoints ==========
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
@@ -65,26 +63,35 @@ def api_login():
 
 @app.route('/api/notes', methods=['GET', 'POST'])
 def api_notes():
-    # Get token from Authorization header or cookies
-    token = request.headers.get(
-        'Authorization') or request.cookies.get('token')
+    auth_header = request.headers.get('Authorization')
+    token = auth_header.split(" ", 1)[1] if auth_header and auth_header.startswith("Bearer ") else request.cookies.get('token')
     headers = {'Authorization': f'Bearer {token}'} if token else {}
 
     try:
         if request.method == 'POST':
             data = request.get_json()
-            response = requests.post(
-                f"{BACKEND_URL}/api/notes",
-                json=data,
-                headers=headers
-            )
+            response = requests.post(f"{BACKEND_URL}/api/notes", json=data, headers=headers)
         else:
-            response = requests.get(
-                f"{BACKEND_URL}/api/notes",
-                headers=headers
-            )
+            response = requests.get(f"{BACKEND_URL}/api/notes", headers=headers)
 
-        # Ensure response is JSON
+        if 'application/json' not in response.headers.get('Content-Type', ''):
+            return jsonify({'error': 'Invalid response from server'}), 500
+
+        return jsonify(response.json()), response.status_code
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/notes/<int:note_id>', methods=['DELETE'])
+def delete_note(note_id):
+    auth_header = request.headers.get('Authorization')
+    token = auth_header.split(" ", 1)[1] if auth_header and auth_header.startswith("Bearer ") else request.cookies.get('token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+
+    try:
+        response = requests.delete(f"{BACKEND_URL}/api/notes/{note_id}", headers=headers)
+
         if 'application/json' not in response.headers.get('Content-Type', ''):
             return jsonify({'error': 'Invalid response from server'}), 500
 

@@ -109,14 +109,18 @@ async def delete_note(note_id: int, db: Session = Depends(get_db), current_user:
     db_note = db.query(Note).filter(
         Note.id == note_id,
         Note.owner_id == current_user["id"]
-        ).first()
+    ).first()
+    
     if not db_note:
-        raise HTTPException(status_code=404, 
-                            detail="Note not found")
+        raise HTTPException(status_code=404, detail="Note not found")
+    
     try:
         db.delete(db_note)
         db.commit()
+        print(f"Note with ID {note_id} deleted successfully.")  # Debug log
         return {"message": "Note deleted successfully"}
     except Exception as e:
         db.rollback()
+        print(f"Error deleting note: {str(e)}")  # Debug log
         raise HTTPException(status_code=500, detail=str(e))
+
