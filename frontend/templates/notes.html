@@ -137,40 +137,43 @@
 
         // Update the fetchNotes function
         async function fetchNotes() {
-    try {
-        const response = await fetch('/api/notes', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
+            try {
+                console.log('Fetching notes...');  // Debug log
+                const response = await fetch('http://api-gateway:8000/api/notes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);  // Debug log
+                
+                if (response.ok) {
+                    const notes = await response.json();
+                    console.log('Fetched notes:', notes);  // Debug log
+                    const notesList = document.getElementById('notesList');
+                    
+                    if (Array.isArray(notes) && notes.length > 0) {
+                        notesList.innerHTML = notes.map(note => `
+                            <div class="note">
+                                <p>${note.content}</p>
+                                <button onclick="deleteNote(${note.id})">Delete</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        notesList.innerHTML = '<p>No notes found. Create one!</p>';
+                    }
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to fetch notes');
+                }
+            } catch (error) {
+                console.error('Error fetching notes:', error);
+                document.getElementById('notesList').innerHTML = 
+                    '<p>Error loading notes. Please refresh the page.</p>';
             }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch notes');
         }
 
-        const notes = await response.json();
-        // Update your UI with the notes
-        const notesList = document.getElementById('notesList');
-        
-        if (notes.length > 0) {
-            notesList.innerHTML = notes.map(note => `
-                <div class="note">
-                    <p>${note.content}</p>
-                    <button onclick="deleteNote('${note.id}')">Delete</button>
-                </div>
-            `).join('');
-        } else {
-            notesList.innerHTML = '<p>No notes found. Create one!</p>';
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('notesList').innerHTML = `
-            <p>Error loading notes: ${error.message}</p>
-        `;
-    }
-}
         // Update the note creation form handler
         document.getElementById('noteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -180,7 +183,7 @@
                 console.log('Creating note with content:', content);  // Debug log
                 console.log('Using token:', token);  // Debug log
                 
-                const response = await fetch('/api/notes', {
+                const response = await fetch('http://api-gateway:8000/api/notes', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -210,7 +213,8 @@
         // Remove credentials: 'include' from deleteNote function
         async function deleteNote(noteId) {
             try {
-                const response = await fetch(` /api/notes/${noteId}`, {
+                const response = await fetch(`/api/notes/${noteId}`, {
+
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -226,7 +230,7 @@
                 }
             } catch (error) {
                 console.error('Error deleting note:', error);
-                alert('Error deleting the note: ' + error.message);
+                alert('Error deleting note: ' + error.message);
             }
         }
 

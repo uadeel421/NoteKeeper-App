@@ -8,7 +8,7 @@ app = FastAPI()
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://frontend:5000"],
+    allow_origins=["http://localhost:5000", "http://frontend:5000", "http://51.8.238.99"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,10 +24,20 @@ USER_SERVICE_URL = "http://user-service:8003"
 async def gateway(path: str, request: Request):
     try:
         # Forward to appropriate service based on path
-        if path in ["api/signup", "api/login"]:
-            service_url = f"{AUTH_SERVICE_URL}/{path}"
-        elif path.startswith("api/notes"):
-            service_url = f"{NOTES_SERVICE_URL}/{path}"
+        if path in ["api/signup", "api/login", "signup", "login"]:
+            # Normalize path to include api prefix if missing
+            if not path.startswith("api/"):
+                service_path = f"api/{path}"
+            else:
+                service_path = path
+            service_url = f"{AUTH_SERVICE_URL}/{service_path}"
+        elif path.startswith("api/notes") or path.startswith("notes"):
+            # Normalize notes path similarly
+            if not path.startswith("api/"):
+                service_path = f"api/{path}"
+            else:
+                service_path = path
+            service_url = f"{NOTES_SERVICE_URL}/{service_path}"
         else:
             raise HTTPException(status_code=404, detail="Path not found")
 
