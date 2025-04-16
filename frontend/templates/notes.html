@@ -213,7 +213,8 @@
         // Remove credentials: 'include' from deleteNote function
         async function deleteNote(noteId) {
             try {
-                const response = await fetch(`http://api-gateway:8000/api/notes/${noteId}`, {
+                const response = await fetch(`/api/notes/${noteId}`, {
+
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`,
