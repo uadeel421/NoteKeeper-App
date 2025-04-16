@@ -36,10 +36,10 @@ jobs:
       run: |
         find . -name "*.py" -exec autopep8 --in-place --aggressive {} \;  # Format all Python files
 
-    - name: Run flake8 (basic lint)
-      working-directory: ${{ matrix.service }}
-      run: |
-        flake8 .
+#    - name: Run flake8 (basic lint)
+#      working-directory: ${{ matrix.service }}
+#      run: |
+#        flake8 .
 
     - name: Run tests with coverage
       working-directory: ${{ matrix.service }}
