@@ -4,7 +4,7 @@ metadata:
   name: configmap
   namespace: staging
 data:
-    FRONTEND_URL: http://51.8.238.99/
-    API_GATEWAY_URL: http://51.8.238.99/api/
-    AUTH_SERVER_URL: http://51.8.238.99/auth/
-    NOTES_SERVER_URL: http://51.8.238.99/notes/
+  BACKEND_URL: "http://api-gateway:8000"
+  API_GATEWAY_URL: "http://api-gateway:8000"
+  AUTH_SERVER_URL: "http://auth-service:8001"
+  NOTES_SERVER_URL: "http://notes-service:8002"
