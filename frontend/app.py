@@ -6,9 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://api-gateway:8000')
-
 
 
 @app.route('/health')
@@ -92,12 +90,10 @@ def delete_note(note_id):
     headers = {'Authorization': f'Bearer {token}'} if token else {}
 
     try:
-        response = requests.delete(f"{BACKEND_URL}
-                        /api/notes/{note_id}", headers=headers)
+        response = requests.delete(f"{BACKEND_URL}/api/notes/{note_id}", headers=headers)
 
         if 'application/json' not in response.headers.get('Content-Type', ''):
             return jsonify({'error': 'Invalid response from server'}), 500
-
 
         return jsonify(response.json()), response.status_code
 
