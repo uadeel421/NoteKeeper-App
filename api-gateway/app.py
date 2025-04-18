@@ -5,34 +5,40 @@ import os
 
 app = FastAPI(root_path="/api")
 
-# CORS middleware
+# CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://frontend:5000", "http://172.214.30.230"],
+    allow_origins=["*"],  # You can tighten this later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Service URLs
+# Microservice URLs
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
 NOTES_SERVICE_URL = os.getenv("NOTES_SERVICE_URL", "http://notes-service:8002")
-USER_SERVICE_URL = "http://user-service:8003"
 
+# ✅ Add this
+@app.get("/health")
+def health_check():
+    return {"status": "api-gateway is alive"}
 
+# ✅ Add this
+@app.get("/")
+def root_check():
+    return {"message": "Welcome to the API Gateway"}
+
+# Catch-all routing
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def gateway(path: str, request: Request):
     try:
-        # Forward to appropriate service based on path
         if path in ["api/signup", "api/login", "signup", "login"]:
-            # Normalize path to include api prefix if missing
             if not path.startswith("api/"):
                 service_path = f"api/{path}"
             else:
                 service_path = path
             service_url = f"{AUTH_SERVICE_URL}/{service_path}"
         elif path.startswith("api/notes") or path.startswith("notes"):
-            # Normalize notes path similarly
             if not path.startswith("api/"):
                 service_path = f"api/{path}"
             else:
@@ -42,8 +48,6 @@ async def gateway(path: str, request: Request):
             raise HTTPException(status_code=404, detail="Path not found")
 
         print(f"Forwarding {request.method} request to: {service_url}")
-
-        # Forward the request
         body = await request.body()
         headers = {key: value for key, value in request.headers.items()
                    if key.lower() not in ["host", "content-length"]}
@@ -56,7 +60,6 @@ async def gateway(path: str, request: Request):
                 content=body
             )
 
-            # Important: Forward the status code from the service
             if response.status_code >= 400:
                 error_detail = response.json()
                 raise HTTPException(
