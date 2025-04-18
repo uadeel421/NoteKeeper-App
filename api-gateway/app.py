@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
 
-app = FastAPI(root_path="/api")
-
+app = FastAPI()
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +26,12 @@ def health_check():
 @app.get("/")
 def root_check():
     return {"message": "Welcome to the API Gateway"}
+
+# ✅ Add this too
+@app.get("/api")
+def api_root():
+    return {"message": "Welcome to the API Gateway root (/api)"}
+
 
 # Catch-all routing
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
