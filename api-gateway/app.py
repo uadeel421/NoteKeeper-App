@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 # CORS middleware
 app.add_middleware(
