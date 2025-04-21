@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: reliancecloud.online
+  - host: reliancecloud.online  # Updated domain
     http:
       paths:
         - path: /

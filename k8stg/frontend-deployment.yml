@@ -23,6 +23,7 @@ spec:
       containers:
         - name: frontend
           image: uadeel421/pythonapplication-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:

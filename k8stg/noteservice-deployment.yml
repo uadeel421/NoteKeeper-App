@@ -23,6 +23,7 @@ spec:
       containers:
         - name: noteservice
           image: uadeel421/pythonapplication-notes-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8002
           env:

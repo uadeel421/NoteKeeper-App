@@ -23,6 +23,7 @@ spec:
       containers:
         - name: apigateway
           image: uadeel421/pythonapplication-api-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
