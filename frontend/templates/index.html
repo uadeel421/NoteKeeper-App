@@ -66,45 +66,5 @@
         <button class="btn btn-primary" onclick="window.location.href='/signup'">Sign Up</button>
         <button class="btn btn-secondary" onclick="window.location.href='/login'">Login</button>
     </div>
-    <script>
-        // Replace or update the signup form event listener
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                email: e.target.email.value,
-                password: e.target.password.value,
-                name: e.target.name.value
-            };
-
-            try {
-                console.log('Signing up...', formData);  // Debug log
-                const response = await fetch('http://localhost:8000/api/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                console.log('Signup response status:', response.status);  // Debug log
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Signup successful:', data);  // Debug log
-                    alert('Signup successful! Please login.');
-                    // Clear form and show login
-                    e.target.reset();
-                    showLoginForm();
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Signup failed');
-                }
-            } catch (error) {
-                console.error('Signup error:', error);
-                alert('Signup failed: ' + error.message);
-            }
-        });
-    </script>
 </body>
 </html>

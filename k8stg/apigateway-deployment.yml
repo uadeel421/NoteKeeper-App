@@ -23,6 +23,7 @@ spec:
       containers:
         - name: apigateway
           image: uadeel421/pythonapplication-api-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
@@ -54,4 +55,4 @@ spec:
     - protocol: TCP
       port: 8000
       targetPort: 8000
-  type: ClusterIP      
+  type: LoadBalancer      

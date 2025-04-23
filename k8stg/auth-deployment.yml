@@ -23,6 +23,7 @@ spec:
       containers:
         - name: auth
           image: uadeel421/pythonapplication-auth-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8001
           env:
