@@ -4,9 +4,14 @@ metadata:
   name: myapp-ingress
   namespace: staging
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Ensures SSL redirect is disabled
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"  # Enable HTTP to HTTPS redirect
 spec:
   ingressClassName: nginx
+  tls:
+  - hosts:
+    - reliancecloud.online
+    secretName: reliancecloud-tls
   rules:
   - host: reliancecloud.online
     http:
@@ -47,10 +52,15 @@ metadata:
   name: myapp-ingress-static
   namespace: staging
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Ensures SSL redirect is disabled
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"  # Enable HTTP to HTTPS redirect
     nginx.ingress.kubernetes.io/rewrite-target: /static/$2  # Rewrite target for static resources
 spec:
   ingressClassName: nginx
+  tls:
+  - hosts:
+    - reliancecloud.online
+    secretName: reliancecloud-tls
   rules:
   - host: reliancecloud.online
     http:
