@@ -1,12 +1,13 @@
+name: notekeeper CI/CD Pipeline
+
 on:
   push:
     branches:
       - main
-      
   pull_request:
     branches: [ main ]
   workflow_dispatch:  
-  
+
 jobs:
   ci:
     name: Linting and Testing
@@ -16,49 +17,43 @@ jobs:
         service: [api-gateway, notes-service, frontend, auth-service]
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      working-directory: ${{ matrix.service }}
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest flake8 pytest-cov autopep8 requests  # Add requests here
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest flake8 pytest-cov autopep8 requests
 
-    - name: Auto format with autopep8
-      working-directory: ${{ matrix.service }}
-      run: |
-        find . -name "*.py" -exec autopep8 --in-place --aggressive {} \;  # Format all Python files
+      - name: Auto format with autopep8
+        working-directory: ${{ matrix.service }}
+        run: |
+          find . -name "*.py" -exec autopep8 --in-place --aggressive {} \;
 
-    - name: Run flake8 (basic lint)
-      working-directory: ${{ matrix.service }}
-      run: |
-        flake8 .
+      - name: Run tests with coverage
+        working-directory: ${{ matrix.service }}
+        run: |
+          export PYTHONPATH=.
+          pytest --cov=. --cov-report=xml || exit 1
 
-    - name: Run tests with coverage
-      working-directory: ${{ matrix.service }}
-      run: |
-        export PYTHONPATH=.
-        pytest --cov=. --cov-report=xml || exit 1
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-
-
-  cd:
-    name: Continuous Deployment
+  build-and-push:
+    name: Build and Push Docker Images
     needs: ci
     runs-on: ubuntu-latest
     strategy:
       matrix:
         service: [api-gateway, notes-service, frontend, auth-service]
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -78,7 +73,7 @@ jobs:
           echo "SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build and Push
+      - name: Build and Push Docker image
         working-directory: ${{ matrix.service }}
         run: |
           docker buildx create --use
@@ -87,3 +82,38 @@ jobs:
             --tag uadeel421/pythonapplication-${{ matrix.service }}:latest \
             --tag uadeel421/pythonapplication-${{ matrix.service }}:${{ env.SHA }} \
             --push .
+
+  helm-deploy:
+    name: Deploy to AKS via Helm
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Create secrets in AKS
+        run: |
+          kubectl create secret generic app-secrets \
+            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --from-literal=SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            -n staging --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy using Helm
+        run: |
+          helm upgrade --install notekeeper ./Kubernetes/notekeeper --namespace staging
