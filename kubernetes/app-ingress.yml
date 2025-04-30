@@ -38,37 +38,11 @@ spec:
               name: frontend-service
               port:
                 number: 5000
-        - path: /api(/|$)(.*)
-          pathType: ImplementationSpecific
+        - path: /api
+          pathType: Prefix
           backend:
             service:
               name: api-gateway
               port:
                 number: 8000
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: myapp-ingress-static
-  namespace: staging
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"  # Enable HTTP to HTTPS redirect
-    nginx.ingress.kubernetes.io/rewrite-target: /static/$2  # Rewrite target for static resources
-spec:
-  ingressClassName: nginx
-  tls:
-  - hosts:
-    - reliancecloud.online
-    secretName: reliancecloud-tls
-  rules:
-  - host: reliancecloud.online
-    http:
-      paths:
-        - path: /static(/|$)(.*)  # Matches "/static" and everything after it
-          pathType: ImplementationSpecific
-          backend:
-            service:
-              name: frontend-service  # This can be adjusted depending on your static content's service
-              port:
-                number: 5000
+

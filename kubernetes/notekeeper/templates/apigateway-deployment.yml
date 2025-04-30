@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: apigateway
+    environment: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: apigateway
+      environment: {{ .Values.namespace }}
+  template:
+    metadata:
+      labels:
+        app: apigateway
+        environment: {{ .Values.namespace }}
+    spec:
+      nodeSelector:
+        environment: {{ .Values.namespace }}
+      containers:
+        - name: apigateway
+          image: "{{ .Values.apiGateway.image.repository }}:{{ .Values.apiGateway.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+          - name: AUTH_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: AUTH_SERVER_URL
+          - name: NOTES_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: NOTES_SERVER_URL
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: apigateway
+    environment: {{ .Values.namespace }}
+spec:
+  selector:
+    app: apigateway
+    environment: {{ .Values.namespace }}
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer      

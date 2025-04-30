@@ -1,0 +1,42 @@
+replicaCount: 1
+
+namespace: staging
+
+frontend:
+  image:
+    repository: uadeel421/pythonapplication-frontend
+    tag: latest
+
+auth:
+  image:
+    repository: uadeel421/pythonapplication-auth-service
+    tag: latest
+
+notesService:  # ⬅ changed from `notesservice` to camelCase for consistency
+  image:
+    repository: uadeel421/pythonapplication-notes-service
+    tag: latest
+
+apiGateway:
+  image:
+    repository: uadeel421/pythonapplication-api-gateway
+    tag: latest
+
+
+config:
+  backendUrl: "http://api-gateway:8000"
+  apiGatewayUrl: "http://api-gateway:8000"
+  authServerUrl: "http://auth-service:8001"
+  notesServerUrl: "http://notes-service:8002"
+
+secret:
+  databaseUrl: ""
+  secretKey: ""
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "reliancecloud.online"
+  tlsSecretName: "reliancecloud-tls"
+  clusterIssuer: letsencrypt-prod
+
