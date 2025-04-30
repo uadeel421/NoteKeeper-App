@@ -116,4 +116,5 @@ jobs:
 
       - name: Deploy using Helm
         run: |
-          helm upgrade --install notekeeper ./Kubernetes/notekeeper --namespace staging
+          helm upgrade --install notekeeper ./kubernetes/notekeeper --namespace staging
+
