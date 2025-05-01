@@ -30,12 +30,12 @@ spec:
           - name: DATABASE_URL
             valueFrom:
               secretKeyRef:
-                name: {{ .Release.Name }}-secret
+                name: app-secrets
                 key: DATABASE_URL
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ .Release.Name }}-secret
+                name: app-secrets
                 key: SECRET_KEY
           volumeMounts:
               - name: mysql-ssl-cert-volume
@@ -44,7 +44,7 @@ spec:
       volumes:
         - name: mysql-ssl-cert-volume
           secret:
-            secretName: {{ .Release.Name }}-secret  # Name of the secret containing the certificate
+            secretName: mysql-ssl-cert # Name of the secret containing the certificate
             items:
               - key: DigiCertGlobalRootCA.crt.pem
                 path: DigiCertGlobalRootCA.crt.pem  

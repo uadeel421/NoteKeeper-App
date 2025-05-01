@@ -29,10 +29,6 @@ config:
   authServerUrl: "http://auth-service:8001"
   notesServerUrl: "http://notes-service:8002"
 
-secret:
-  databaseUrl: ""
-  secretKey: ""
-
 ingress:
   enabled: true
   className: "nginx"
