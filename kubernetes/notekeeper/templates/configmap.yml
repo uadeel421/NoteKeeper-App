@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  BACKEND_URL: "{{ .Values.config.backendUrl }}"
+  API_GATEWAY_URL: "{{ .Values.config.apiGatewayUrl }}"
+  AUTH_SERVER_URL: "{{ .Values.config.authServerUrl }}"
+  NOTES_SERVER_URL: "{{ .Values.config.notesServerUrl }}"

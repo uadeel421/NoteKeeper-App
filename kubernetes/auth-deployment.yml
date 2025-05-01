@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: staging            # 👈 ensures it's isolated in staging
+  labels:
+    app: auth
+    environment: staging        # 👈 helps identify environment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: auth
+        environment: staging
+    spec:
+      nodeSelector:
+        environment: staging  # 👈 schedules this on staging node pool
+      containers:
+        - name: auth
+          image: uadeel421/pythonapplication-auth-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8001
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: DATABASE_URL
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: SECRET_KEY
+          volumeMounts:
+            - name: mysql-ssl-cert-volume
+              mountPath: /app/ssl
+              readOnly: true      
+      volumes:
+        - name: mysql-ssl-cert-volume
+          secret:
+            secretName: mysql-ssl-cert  # Name of the secret containing the certificate
+            items:
+              - key: DigiCertGlobalRootCA.crt.pem
+                path: DigiCertGlobalRootCA.crt.pem          
+        
+            
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: staging
+  labels:
+    app: auth
+    environment: staging
+spec:
+  selector:
+    app: auth
+    environment: staging
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+  type: ClusterIP

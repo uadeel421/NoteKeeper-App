@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: noteservice-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: noteservice
+    environment: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: noteservice
+      environment: {{ .Values.namespace }}
+  template:
+    metadata:
+      labels:
+        app: noteservice
+        environment: {{ .Values.namespace }}
+    spec:
+      nodeSelector:
+        environment: {{ .Values.namespace }}
+      containers:
+        - name: noteservice
+          image: "{{ .Values.notesService.image.repository }}:{{ .Values.notesService.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8002
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: DATABASE_URL
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: SECRET_KEY
+          volumeMounts:
+              - name: mysql-ssl-cert-volume
+                mountPath: /app/ssl
+                readOnly: true            
+      volumes:
+        - name: mysql-ssl-cert-volume
+          secret:
+            secretName: mysql-ssl-cert # Name of the secret containing the certificate
+            items:
+              - key: DigiCertGlobalRootCA.crt.pem
+                path: DigiCertGlobalRootCA.crt.pem  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: noteservice
+    environment: {{ .Values.namespace }}
+spec:
+  selector:
+    app: noteservice
+    environment: {{ .Values.namespace }}
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002
+  type: ClusterIP                  
+

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: frontend
+    environment: {{ .Values.namespace }}
+spec: 
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend
+      environment: {{ .Values.namespace }}
+  template:
+    metadata:
+      labels:
+        app: frontend
+        environment: {{ .Values.namespace }}
+    spec:
+      nodeSelector:
+        environment: {{ .Values.namespace }}  # 👈 schedules this on {{ .Values.namespace }} node pool    
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-configmap
+                  key: API_GATEWAY_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: {{ .Values.namespace }}
+  
+  labels:
+    app: frontend
+    environment: {{ .Values.namespace }}
+spec:
+  selector:
+    app: frontend
+    environment: {{ .Values.namespace }}
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP
