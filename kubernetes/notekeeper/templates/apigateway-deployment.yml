@@ -18,8 +18,8 @@ spec:
         app: apigateway
         environment: {{ .Values.namespace }}
     spec:
-      nodeSelector:
-        environment: {{ .Values.namespace }}
+      nodeSelector: 
+      {{ toYaml .Values.nodeSelector | indent 8 }}
       containers:
         - name: apigateway
           image: "{{ .Values.apiGateway.image.repository }}:{{ .Values.apiGateway.image.tag }}"
@@ -55,4 +55,4 @@ spec:
     - protocol: TCP
       port: 8000
       targetPort: 8000
-  type: LoadBalancer      
+  type: ClusterIP     

@@ -19,7 +19,10 @@ spec:
         environment: staging
     spec:
       nodeSelector:
-        environment: staging  # 👈 schedules this on staging node pool    
+        # 👈 schedules this on staging node pool
+        kubernetes.azure.com/agentpool: stgpool
+
+  # 👈 schedules this on staging node pool    
       containers:
         - name: frontend
           image: uadeel421/pythonapplication-frontend:latest

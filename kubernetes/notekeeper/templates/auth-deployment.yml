@@ -18,25 +18,18 @@ spec:
         app: auth
         environment: {{ .Values.namespace }}
     spec:
-      nodeSelector:
-        environment: {{ .Values.namespace }}  # 👈 schedules this on {{ .Values.namespace }} node pool
+      nodeSelector: 
+      {{ toYaml .Values.nodeSelector | indent 8 }}  # 👈 schedules this on {{ .Values.namespace }} node pool
       containers:
         - name: auth
           image: "{{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag }}"
           imagePullPolicy: Always
           ports:
             - containerPort: 8001
-          env:
-          - name: DATABASE_URL
-            valueFrom:
-              secretKeyRef:
+          envFrom:
+            - secretRef:
                 name: app-secrets
-                key: DATABASE_URL
-          - name: SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: app-secrets
-                key: SECRET_KEY
+
           volumeMounts:
             - name: mysql-ssl-cert-volume
               mountPath: /app/ssl

@@ -44,7 +44,7 @@ spec:
       volumes:
         - name: mysql-ssl-cert-volume
           secret:
-            secretName: mysql-ssl-cert  # Name of the secret containing the certificate
+            secretName: mysql-ssl-cert # Name of the secret containing the certificate
             items:
               - key: DigiCertGlobalRootCA.crt.pem
                 path: DigiCertGlobalRootCA.crt.pem  
