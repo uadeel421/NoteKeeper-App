@@ -122,8 +122,9 @@ jobs:
               --set auth.image.tag=latest \
               --set notesService.image.tag=latest \
               --set apiGateway.image.tag=latest \
-              --set frontend.image.pullPolicy=Always \
-              --set auth.image.pullPolicy=Always \
-              --set notesService.image.pullPolicy=Always \
-              --set apiGateway.image.pullPolicy=Always
+              --set frontend.image.tag=${{ env.SHA }} \
+              --set auth.image.tag=${{ env.SHA }} \
+              --set notesService.image.tag=${{ env.SHA }} \
+              --set apiGateway.image.tag=${{ env.SHA }} \
+
 
