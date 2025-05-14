@@ -22,7 +22,7 @@ spec:
         {{ toYaml .Values.nodeSelector | indent 8 }}
       containers:
         - name: noteservice
-          image: '{{ .Values.notesService.image.repository }}:{{default "latest".Values.notesService.image.tag }}'
+          image: "{{ .Values.notesService.image.repository }}:{{ default \"latest\" .Values.notesService.image.tag }}"
           imagePullPolicy: {{ .Values.notesService.image.pullPolicy }}
           ports:
             - containerPort: 8002

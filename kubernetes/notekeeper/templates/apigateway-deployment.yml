@@ -22,7 +22,7 @@ spec:
       {{ toYaml .Values.nodeSelector | indent 8 }}
       containers:
         - name: apigateway
-          image: '{{ .Values.apiGateway.image.repository }}:{{default "latest".Values.apiGateway.image.tag }}'
+          image: "{{ .Values.apiGateway.image.repository }}:{{default \"latest\".Values.apiGateway.image.tag }}"
           imagePullPolicy: {{ .Values.apiGateway.image.pullPolicy }}
           ports:
             - containerPort: 8000

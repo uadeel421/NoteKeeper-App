@@ -22,7 +22,7 @@ spec:
       {{ toYaml .Values.nodeSelector | indent 8 }}  # 👈 schedules this on {{ .Values.namespace }} node pool
       containers:
         - name: auth
-          image: '{{ .Values.auth.image.repository }}:{{ default "latest" .Values.auth.image.tag }}'
+          image: "{{ .Values.auth.image.repository }}:{{ default \"latest\".Values.auth.image.tag }}"
           imagePullPolicy: {{ .Values.auth.image.pullPolicy }}
           ports:
             - containerPort: 8001
