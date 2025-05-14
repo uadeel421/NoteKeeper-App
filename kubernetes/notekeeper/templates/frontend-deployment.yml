@@ -22,7 +22,7 @@ spec:
       {{ toYaml .Values.nodeSelector | indent 8 }} # schedules this on the correct node pool
       containers:
         - name: frontend
-          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          image: '{{ .Values.frontend.image.repository }}:{{ default "latest" .Values.frontend.image.tag }}'
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
             - containerPort: 5000
