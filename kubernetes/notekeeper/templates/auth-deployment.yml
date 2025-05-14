@@ -23,7 +23,7 @@ spec:
       containers:
         - name: auth
           image: "{{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.auth.image.pullPolicy }}
           ports:
             - containerPort: 8001
           envFrom:

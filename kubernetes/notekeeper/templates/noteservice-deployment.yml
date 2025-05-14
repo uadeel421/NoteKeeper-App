@@ -23,7 +23,7 @@ spec:
       containers:
         - name: noteservice
           image: "{{ .Values.notesService.image.repository }}:{{ .Values.notesService.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.notesService.image.pullPolicy }}
           ports:
             - containerPort: 8002
           envFrom:

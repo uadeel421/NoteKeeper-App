@@ -6,21 +6,25 @@ frontend:
   image:
     repository: uadeel421/pythonapplication-frontend
     tag: latest
+    pullPolicy: Always
 
 auth:
   image:
     repository: uadeel421/pythonapplication-auth-service
     tag: latest
+    pullPolicy: Always
 
 notesService:  # ⬅ changed from `notesservice` to camelCase for consistency
   image:
     repository: uadeel421/pythonapplication-notes-service
     tag: latest
+    pullPolicy: Always
 
 apiGateway:
   image:
     repository: uadeel421/pythonapplication-api-gateway
     tag: latest
+    pullPolicy: Always
 
 nodeSelector:
   kubernetes.azure.com/agentpool: stgpool
