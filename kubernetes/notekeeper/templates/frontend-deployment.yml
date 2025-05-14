@@ -18,12 +18,12 @@ spec:
         app: frontend
         environment: {{ .Values.namespace }}
     spec:
-      nodeSelector:
-        environment: {{ .Values.namespace }}  # 👈 schedules this on {{ .Values.namespace }} node pool    
+      nodeSelector: 
+      {{ toYaml .Values.nodeSelector | indent 8 }} # schedules this on the correct node pool
       containers:
         - name: frontend
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
             - containerPort: 5000
           env:

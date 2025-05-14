@@ -19,3 +19,6 @@ venv/
 .vscode/
 .idea/
 
+#load-terraform-creds
+*.ps1
+

@@ -6,22 +6,28 @@ frontend:
   image:
     repository: uadeel421/pythonapplication-frontend
     tag: latest
+    pullPolicy: Always
 
 auth:
   image:
     repository: uadeel421/pythonapplication-auth-service
     tag: latest
+    pullPolicy: Always
 
 notesService:  # ⬅ changed from `notesservice` to camelCase for consistency
   image:
     repository: uadeel421/pythonapplication-notes-service
     tag: latest
+    pullPolicy: Always
 
 apiGateway:
   image:
     repository: uadeel421/pythonapplication-api-gateway
     tag: latest
+    pullPolicy: Always
 
+nodeSelector:
+  kubernetes.azure.com/agentpool: stgpool
 
 config:
   backendUrl: "http://api-gateway:8000"
@@ -36,3 +42,7 @@ ingress:
   tlsSecretName: "reliancecloud-tls"
   clusterIssuer: letsencrypt-prod
 
+#keyvault:
+ # name: kpkeysvault
+  #tenantId: 1c127d2d-2d00-477a-b479-3104cb849681
+  
