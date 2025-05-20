@@ -120,11 +120,11 @@ jobs:
   
       - name: Create mysql-ssl-cert secret
         run: |
-          echo "${{ secrets.MYSQL_SSL_CERT }}" > mysql-ssl-cert.pem
+          echo "${{ secrets.MYSQL_SSL_CERT }}" > DigiCertGlobalRootCA.crt.pem
           kubectl create secret generic mysql-ssl-cert \
-            --from-file=mysql-ssl-cert.pem \
+            --from-file=DigiCertGlobalRootCA.crt.pem \
             -n staging --dry-run=client -o yaml | kubectl apply -f -
-  
+
       - name: Deploy using Helm
         run: |
           helm upgrade --install notekeeper ./kubernetes/notekeeper \
