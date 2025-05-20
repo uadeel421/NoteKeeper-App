@@ -42,7 +42,7 @@ ingress:
   tlsSecretName: "reliancecloud-tls"
   clusterIssuer: letsencrypt-prod
 
-#keyvault:
- # name: kpkeysvault
-  #tenantId: 1c127d2d-2d00-477a-b479-3104cb849681
+keyvault:
+  name: kpkeysvault
+  tenantId: 1c127d2d-2d00-477a-b479-3104cb849681
   
