@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from jose import jwt
 import os
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # Initialize app
 app = FastAPI()
 
