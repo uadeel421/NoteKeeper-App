@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Read DATABASE_URL from mounted Key Vault secret
-with open("/mnt/secrets-store/DATABASE-URL") as f:
+with open("/mnt/secrets-store/Database-URL") as f:
     DATABASE_URL = f.read().strip()
 
 print(f"Connecting to database: {DATABASE_URL}")
