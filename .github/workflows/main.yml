@@ -111,19 +111,19 @@ jobs:
         run: |
           kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
   
-      - name: Create app-secrets in AKS
-        run: |
-          kubectl create secret generic app-secrets \
-            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            --from-literal=SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-            -n staging --dry-run=client -o yaml | kubectl apply -f -
+#      - name: Create app-secrets in AKS
+ #       run: |
+ #         kubectl create secret generic app-secrets \
+ #           --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+  #          --from-literal=SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+ #           -n staging --dry-run=client -o yaml | kubectl apply -f -
   
-      - name: Create mysql-ssl-cert secret
-        run: |
-          echo "${{ secrets.MYSQL_SSL_CERT }}" > DigiCertGlobalRootCA.crt.pem
-          kubectl create secret generic mysql-ssl-cert \
-            --from-file=DigiCertGlobalRootCA.crt.pem \
-            -n staging --dry-run=client -o yaml | kubectl apply -f -
+  #    - name: Create mysql-ssl-cert secret
+    #    run: |
+   #       echo "${{ secrets.MYSQL_SSL_CERT }}" > DigiCertGlobalRootCA.crt.pem
+   #       kubectl create secret generic mysql-ssl-cert \
+    #        --from-file=DigiCertGlobalRootCA.crt.pem \
+    #        -n staging --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy using Helm
         run: |
