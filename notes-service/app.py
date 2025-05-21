@@ -9,10 +9,11 @@ import os
 # Initialize app
 app = FastAPI()
 
-# Security configuration
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
+# Read SECRET_KEY from the mounted file
+with open("/mnt/secrets-store/SECRET-KEY") as f:
+    SECRET_KEY = f.read().strip()
 
+ALGORITHM = "HS256"
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
