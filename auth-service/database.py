@@ -1,12 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+# Read DATABASE_URL from mounted Key Vault secret
+with open("/mnt/secrets-store/Database-URL") as f:
+    DATABASE_URL = f.read().strip()
 
-DATABASE_URL = os.getenv('DATABASE_URL')
 print(f"Connecting to database: {DATABASE_URL}")
 
 engine = create_engine(DATABASE_URL)

@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+# ✅ Load DATABASE_URL from mounted Azure Key Vault secret
+with open("/mnt/secrets-store/Database-URL") as f:
+    DATABASE_URL = f.read().strip()
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+print(f"Connecting to database: {DATABASE_URL}")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

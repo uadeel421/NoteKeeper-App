@@ -87,35 +87,47 @@ jobs:
     name: Deploy to AKS via Helm
     needs: build-and-push
     runs-on: ubuntu-latest
-
+  
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
+  
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+  
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
-
+  
       - name: Set up Helm
         uses: azure/setup-helm@v3
-
+  
       - name: Get AKS credentials
         run: |
           az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
-
-      - name: Create secrets in AKS
+  
+      - name: Create 'staging' namespace if not exists
         run: |
-          kubectl create secret generic app-secrets \
-            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            --from-literal=SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-            -n staging --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
+  
+#      - name: Create app-secrets in AKS
+ #       run: |
+ #         kubectl create secret generic app-secrets \
+ #           --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+  #          --from-literal=SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+ #           -n staging --dry-run=client -o yaml | kubectl apply -f -
+  
+  #    - name: Create mysql-ssl-cert secret
+    #    run: |
+   #       echo "${{ secrets.MYSQL_SSL_CERT }}" > DigiCertGlobalRootCA.crt.pem
+   #       kubectl create secret generic mysql-ssl-cert \
+    #        --from-file=DigiCertGlobalRootCA.crt.pem \
+    #        -n staging --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy using Helm
         run: |
-            helm upgrade --install notekeeper ./kubernetes/notekeeper \
-              --namespace staging 
+          helm upgrade --install notekeeper ./kubernetes/notekeeper \
+            --namespace staging
+
 

@@ -21,4 +21,6 @@ venv/
 
 #load-terraform-creds
 *.ps1
+.exe
 
+*kubernetes/credentials-velero

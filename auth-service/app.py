@@ -8,12 +8,15 @@ from datetime import datetime, timedelta
 from jose import jwt
 import os
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # Initialize app
 app = FastAPI()
 
-# Match security configuration from monolithic app
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = os.getenv("SECRET_KEY")
+# Read SECRET_KEY from the mounted file
+with open("/mnt/secrets-store/SECRET-KEY") as f:
+    SECRET_KEY = f.read().strip()
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
