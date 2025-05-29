@@ -34,8 +34,8 @@ data "azurerm_key_vault_secret" "mysql_password" {
   key_vault_id = data.azurerm_key_vault.main.id
 }
 
-resource "azurerm_user_assigned_identity" "example" {
-  name                = "my-identity"
+resource "azurerm_user_assigned_identity" "uai" {
+  name                = "sql-identity"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
 }
@@ -56,7 +56,7 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.example.id]
+    identity_ids = [azurerm_user_assigned_identity.uai.id]
   }
 
   depends_on = [
@@ -69,7 +69,7 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "allow_all" {
   resource_group_name = data.azurerm_resource_group.main.name
   server_name         = azurerm_mysql_flexible_server.main.name
   start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+  end_ip_address      = "255.255.255.255"
 }
 
 # AKS Cluster Deployment
