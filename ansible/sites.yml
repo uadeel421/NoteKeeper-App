@@ -1,0 +1,15 @@
+# ansible/site.yml
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Include Ingress Controller tasks
+      include_role:
+        name: ingress
+
+    - name: Include CSI Driver tasks
+      include_role:
+        name: csi-driver
+
+    - name: Include Cert Manager tasks
+      include_role:
+        name: cert-manager
