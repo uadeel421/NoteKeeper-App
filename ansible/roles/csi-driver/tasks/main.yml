@@ -1,0 +1,17 @@
+- name: Add CSI Driver Helm repo and update
+  shell: |
+    helm repo add csi-secrets-store-provider-azure https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
+    helm repo update
+  environment:
+    KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/config"
+
+- name: Install Azure CSI Driver
+  shell: |
+    helm upgrade --install csi-secrets-store-provider-azure \
+      csi-secrets-store-provider-azure/csi-secrets-store-provider-azure \
+      --namespace kube-system \
+      --set secrets-store-csi-driver.install=true \
+      --set linux.useManagedIdentityExtension=true \
+      --set linux.usePodIdentity=false
+  environment:
+    KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/config"
