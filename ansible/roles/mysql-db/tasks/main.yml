@@ -1,0 +1,84 @@
+---
+# REMOVED: Initial pip install task for dependencies
+# REMOVED: python3-venv apt install task
+# REMOVED: mysql_venv_path set_fact and venv creation task
+
+- name: Retrieve MySQL Admin Username from Azure Key Vault
+  azure.azcollection.azure_keyvault_secret_info:
+    vault_url: "{{ azure_keyvault_url }}"
+    name: "mysql-admin-username"
+  register: mysql_admin_user_secret_info
+  delegate_to: localhost
+  environment:
+    ANSIBLE_PYTHON_INTERPRETER: "/home/azureuser/fresh-ansible-venv/bin/python"
+
+- name: Set MySQL Admin User fact
+  ansible.builtin.set_fact:
+    mysql_admin_user: "{{ mysql_admin_user_secret_info.secrets[0].value }}"
+  when: mysql_admin_user_secret_info.secrets | length > 0
+  no_log: true
+
+- name: Retrieve MySQL Admin Password from Azure Key Vault
+  azure.azcollection.azure_keyvault_secret_info:
+    vault_url: "{{ azure_keyvault_url }}"
+    name: "mysql-admin-password"
+  register: mysql_admin_password_secret_info
+  delegate_to: localhost
+  environment:
+    ANSIBLE_PYTHON_INTERPRETER: "/home/azureuser/fresh-ansible-venv/bin/python"
+
+- name: Set MySQL Admin Password fact
+  ansible.builtin.set_fact:
+    mysql_admin_password: "{{ mysql_admin_password_secret_info.secrets[0].value }}"
+  when: mysql_admin_password_secret_info.secrets | length > 0
+  no_log: true
+
+- name: Retrieve MySQL SSL Certificate from Azure Key Vault
+  azure.azcollection.azure_keyvault_secret_info:
+    vault_url: "{{ azure_keyvault_url }}"
+    name: "SSL-CERT"
+  register: mysql_ssl_cert_secret_info
+  delegate_to: localhost
+  environment:
+    ANSIBLE_PYTHON_INTERPRETER: "/home/azureuser/fresh-ansible-venv/bin/python"
+
+- name: Set MySQL SSL Certificate content fact
+  ansible.builtin.set_fact:
+    mysql_ssl_cert_content: "{{ mysql_ssl_cert_secret_info.secrets[0].value }}"
+  when: mysql_ssl_cert_secret_info.secrets | length > 0
+  no_log: true
+
+- name: Create temporary file for MySQL SSL CA Certificate
+  ansible.builtin.copy:
+    content: "{{ mysql_ssl_cert_content }}"
+    dest: "/tmp/mysql_ca.crt"
+    mode: '0600'
+  delegate_to: localhost
+  when: mysql_ssl_cert_content is defined and mysql_ssl_cert_content | length > 0
+
+- name: Create MySQL database on Azure
+  community.mysql.mysql_db:
+    login_host: "{{ mysql_server_fqdn }}"
+    login_user: "{{ mysql_admin_user }}"
+    login_password: "{{ mysql_admin_password }}"
+    name: "{{ mysql_database_name }}"
+    state: present
+    encoding: "{{ mysql_database_encoding | default('utf8mb4') }}"
+    collation: "{{ mysql_database_collation | default('utf8mb4_unicode_ci') }}"
+    ssl_ca: "/tmp/mysql_ca.crt"
+    ssl_verify_cert: true
+  register: db_creation_result
+  no_log: true
+  environment:
+    ANSIBLE_PYTHON_INTERPRETER: "/home/azureuser/fresh-ansible-venv/bin/python"
+
+- name: Report database creation status
+  ansible.builtin.debug:
+    msg: "Database '{{ mysql_database_name }}' creation status: {{ db_creation_result.changed | ternary('Created/Modified', 'Already exists') }}"
+
+- name: Clean up temporary MySQL SSL CA Certificate file
+  ansible.builtin.file:
+    path: "/tmp/mysql_ca.crt"
+    state: absent
+  delegate_to: localhost
+  when: mysql_ssl_cert_content is defined and mysql_ssl_cert_content | length > 0

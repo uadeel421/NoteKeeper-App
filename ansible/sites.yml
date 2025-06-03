@@ -1,15 +1,29 @@
+---
 # ansible/site.yml
 - hosts: localhost
   become: yes
+  connection: local
+
+  vars:
+    azure_keyvault_url: "https://kpkeysvault.vault.azure.net/"
+    mysql_server_fqdn: "rwdbserver.mysql.database.azure.com"
+    mysql_database_name: "myappdb"
+    mysql_database_encoding: "utf8mb4"
+    mysql_database_collation: "utf8mb4_unicode_ci"
+
+    ansible_python_interpreter: /usr/bin/python3 # This is for Ansible's general execution context
+
   tasks:
+    # No more pip install task here either, as it's handled by manual pip installs into fresh-ansible-venv
     - name: Include Ingress Controller tasks
       include_role:
         name: ingress
-
     - name: Include CSI Driver tasks
       include_role:
         name: csi-driver
-
     - name: Include Cert Manager tasks
       include_role:
         name: cert-manager
+    - name: Configure MySQL DB
+      include_role:
+        name: mysql-db
