@@ -1,0 +1,39 @@
+# In your roles/csi_driver/tasks/main.yml
+
+- name: Add Azure CSI Driver Helm repository
+  kubernetes.core.helm_repository:
+    name: csi-secrets-store-provider-azure
+    repo_url: https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
+    state: present # Ensures the repo is added and handles idempotency
+  # No KUBECONFIG needed here, this is a local helm config operation
+
+- name: Update Helm repositories
+  # The helm_repository module with state: present typically implies update,
+  # but an explicit 'helm repo update' can be useful for all repos.
+  # If you just added one repo, it's often sufficient.
+  # For a general update of all repos:
+  ansible.builtin.command: helm repo update
+  changed_when: true # Always reports changed, as it's just an update operation.
+  # No KUBECONFIG needed here.
+
+- name: Ensure kube-system namespace exists (if it doesn't already)
+  kubernetes.core.k8s:
+    name: kube-system
+    api_version: v1
+    kind: Namespace
+    state: present
+  # No explicit kubeconfig needed here as it defaults to ~/.kube/config
+
+- name: Install Azure CSI Secrets Store Provider
+  kubernetes.core.helm:
+    name: csi-secrets-store-provider-azure
+    chart_ref: csi-secrets-store-provider-azure/csi-secrets-store-provider-azure
+    namespace: kube-system
+    release_values: # Use release_values to pass --set options
+      secrets-store-csi-driver:
+        install: true
+      linux:
+        useManagedIdentityExtension: true
+        usePodIdentity: false
+    kubeconfig: "{{ ansible_env.HOME }}/.kube/config" # Explicitly specify kubeconfig path
+    state: present # This corresponds to 'helm upgrade --install' and is idempotent

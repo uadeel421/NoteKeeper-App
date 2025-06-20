@@ -1,0 +1,81 @@
+# roles/common/tasks/main.yml
+---
+- name: Get OS distribution
+  ansible.builtin.setup:
+    filter: ansible_distribution
+
+- name: Install required packages (Debian/Ubuntu)
+  become: true
+  ansible.builtin.apt:
+    name: 
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - python3-kubernetes
+      - python3-openshift
+    state: present
+    update_cache: yes
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: Download Kubernetes signing key
+  become: true
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+    mode: '0644'
+    force: true
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: Add Kubernetes apt repository (Debian/Ubuntu)
+  become: true
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /
+    state: present
+    filename: kubernetes
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: Install kubectl (Debian/Ubuntu)
+  become: true
+  ansible.builtin.apt:
+    name: kubectl
+    state: present
+    update_cache: yes
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: Install kubectl (RedHat/CentOS)
+  become: true  # Add this line for sudo privileges
+  ansible.builtin.yum:
+    name: kubectl
+    state: present
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS' or ansible_distribution == 'Rocky' or ansible_distribution == 'AlmaLinux'
+
+- name: Install Helm (Debian/Ubuntu)
+  become: true  # Add this line for sudo privileges
+  ansible.builtin.shell: |
+    curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+    sudo apt-get update
+    sudo apt-get install helm
+  args:
+    creates: /usr/local/bin/helm
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: Install Helm (RedHat/CentOS)
+  become: true  # Add this line for sudo privileges
+  ansible.builtin.shell: |
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS' or ansible_distribution == 'Rocky' or ansible_distribution == 'AlmaLinux'
+
+- name: Verify kubectl is installed
+  ansible.builtin.command: kubectl version --client
+  register: kubectl_check_common
+  failed_when: kubectl_check_common.rc != 0
+  changed_when: false
+
+- name: Verify Helm is installed
+  ansible.builtin.command: helm version --client
+  register: helm_check_common
+  failed_when: helm_check_common.rc != 0
+  changed_when: false

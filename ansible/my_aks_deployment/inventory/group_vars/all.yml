@@ -1,0 +1,5 @@
+# my_aks_deployment/inventory/group_vars/all.yml
+---
+# Common variables for all hosts/groups in this inventory
+aks_resource_group: kprg # <--- IMPORTANT: Replace with your actual RG name
+aks_cluster_name: kp-k8s-cluster       # <--- IMPORTANT: Replace with your actual Cluster name

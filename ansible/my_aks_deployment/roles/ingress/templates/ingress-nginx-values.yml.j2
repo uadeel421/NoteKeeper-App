@@ -1,0 +1,11 @@
+; roles/ingress/templates/ingress-nginx-values.yml.j2
+# This file will be rendered by Ansible and used by the helm module
+# Example values, adjust based on your needs
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: /healthz
+      service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+    externalTrafficPolicy: Local
+  # You can use Ansible variables here as well, e.g.:
+  # replicaCount: "{{ ingress_replica_count | default(2) }}"
