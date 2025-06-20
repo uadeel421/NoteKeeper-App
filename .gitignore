@@ -24,3 +24,5 @@ venv/
 .exe
 
 *kubernetes/credentials-velero
+
+.terraform/.terraform/
