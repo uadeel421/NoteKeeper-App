@@ -1,4 +1,0 @@
-- name: Install Cert Manager via kubectl
-  shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
-  environment:
-    KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/config"

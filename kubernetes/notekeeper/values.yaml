@@ -40,7 +40,7 @@ ingress:
   className: "nginx"
   host: "reliancecloud.online"
   tlsSecretName: "reliancecloud-tls"
-  clusterIssuer: letsencrypt-prod
+  clusterIssuer: letsencrypt-stg
 
 keyvault:
   name: kpkeysvault
