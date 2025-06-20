@@ -26,3 +26,4 @@ venv/
 *kubernetes/credentials-velero
 
 .terraform/.terraform/
+.terraform/
