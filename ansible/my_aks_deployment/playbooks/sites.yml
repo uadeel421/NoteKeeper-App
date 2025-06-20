@@ -1,0 +1,53 @@
+# my_aks_deployment/playbooks/sites.yml
+---
+- name: Prepare Localhost and Deploy Kubernetes Services to AKS
+  hosts: localhost
+  gather_facts: true
+  vars:
+    become_override: false  # Global var to control become behavior
+
+  tasks:
+    - name: Include common role for kubectl/helm installation
+      ansible.builtin.include_role:
+        name: common
+
+    - name: Ensure Azure CLI is logged in and AKS credentials are set
+      ansible.builtin.command: >
+        az aks get-credentials --resource-group {{ aks_resource_group }} --name {{ aks_cluster_name }} --overwrite-existing
+      args:
+        creates: ~/.kube/config
+      environment:
+        PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+      changed_when: false
+      become: "{{ become_override }}"
+
+    - name: Verify kubectl can connect to AKS
+      ansible.builtin.command: kubectl get nodes
+      register: kubectl_get_nodes_output
+      failed_when: kubectl_get_nodes_output.rc != 0
+      changed_when: false
+      become: "{{ become_override }}"
+
+    - name: Display kubectl output
+      ansible.builtin.debug:
+        msg: "{{ kubectl_get_nodes_output.stdout }}"
+      become: "{{ become_override }}"
+
+    # Now, include your deployment roles
+    - name: Include Ingress Controller role
+      ansible.builtin.include_role:
+        name: ingress
+      vars:
+        become: "{{ become_override }}"
+
+    - name: Include CSI Driver role
+      ansible.builtin.include_role:
+        name: csi-driver
+      vars:
+        become: "{{ become_override }}"
+
+    - name: Include Cert Manager role
+      ansible.builtin.include_role:
+        name: cert-manager
+      vars:
+        become: "{{ become_override }}"
